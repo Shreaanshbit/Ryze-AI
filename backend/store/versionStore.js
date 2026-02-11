@@ -1,11 +1,12 @@
 let versions = [];
 let currentVersion = -1;
 
-function saveVersion(code, explanation) {
+function saveVersion(code, explanation, uiPlan) {
   const newVersion = {
     id: versions.length,
     code,
     explanation,
+    uiPlan
   };
 
   versions.push(newVersion);
@@ -23,7 +24,7 @@ function getCurrentVersion() {
 }
 
 function rollback(versionId) {
-  const version = versions.find((v) => v.id === versionId);
+  const version = versions.find(v => v.id === versionId);
   if (!version) return null;
 
   currentVersion = versionId;
@@ -34,5 +35,5 @@ module.exports = {
   saveVersion,
   getVersions,
   getCurrentVersion,
-  rollback,
+  rollback
 };

@@ -1,14 +1,21 @@
-async function planner(userInput, previousState = null) {
+async function planner(userInput, previousPlan = null) {
   if (!userInput || typeof userInput !== "string") {
     throw new Error("Invalid user input");
   }
 
   const intent = userInput.toLowerCase();
 
+  if (!previousPlan) {
+    return createNewPlan(intent);
+  }
+
+  return modifyExistingPlan(intent, previousPlan);
+}
+
+function createNewPlan(intent) {
   const plan = {
     layout: "single-column",
-    components: [],
-    mode: previousState ? "modify" : "create"
+    components: []
   };
 
   if (intent.includes("dashboard")) {
@@ -39,4 +46,52 @@ async function planner(userInput, previousState = null) {
   return plan;
 }
 
+function modifyExistingPlan(intent, existingPlan) {
+  const updatedPlan = {
+    layout: existingPlan.layout,
+    components: [...existingPlan.components]
+  };
+
+  const addModal =
+    intent.includes("add modal") ||
+    (intent.includes("modal") && !intent.includes("remove"));
+
+  const removeModal = intent.includes("remove modal");
+
+  const addChart =
+    intent.includes("add chart") ||
+    (intent.includes("chart") && !intent.includes("remove"));
+
+  const removeChart = intent.includes("remove chart");
+
+  if (addModal) {
+    const hasModal = updatedPlan.components.some(c => c.type === "Modal");
+    if (!hasModal) {
+      updatedPlan.components.push({ type: "Modal", props: { title: "Settings" } });
+    }
+  }
+
+  if (removeModal) {
+    updatedPlan.components = updatedPlan.components.filter(c => c.type !== "Modal");
+  }
+
+  if (addChart) {
+    const hasChart = updatedPlan.components.some(c => c.type === "Chart");
+    if (!hasChart) {
+      updatedPlan.components.push({ type: "Chart" });
+    }
+  }
+
+  if (removeChart) {
+    updatedPlan.components = updatedPlan.components.filter(c => c.type !== "Chart");
+  }
+
+  if (intent.includes("minimal")) {
+    updatedPlan.components = updatedPlan.components.filter(
+      c => c.type === "Sidebar" || c.type === "Navbar" || c.type === "Card"
+    );
+  }
+
+  return updatedPlan;
+}
 module.exports = planner;

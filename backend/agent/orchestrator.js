@@ -2,37 +2,32 @@ const planner = require("./planner");
 const generator = require("./generator");
 const explainer = require("./explainer");
 const validateCode = require("../validator/validateCode");
-const {
-  saveVersion,
-  getCurrentVersion
-} = require("../store/versionStore");
+const versionStore = require("../store/versionStore");
 
 async function orchestrator(userInput) {
-  if (!userInput) {
+  if (!userInput || typeof userInput !== "string") {
     throw new Error("User input is required");
   }
 
-  const previousVersion = getCurrentVersion();
+  const previousVersion = versionStore.getCurrentVersion();
+  const previousPlan = previousVersion ? previousVersion.uiPlan : null;
 
-  const plan = await planner(userInput, previousVersion);
+  const uiPlan = await planner(userInput, previousPlan);
 
-  const code = generator(plan);
+  const code = generator(uiPlan);
 
   const validation = validateCode(code);
   if (!validation.valid) {
-    return {
-      success: false,
-      error: validation.error
-    };
+    return { success: false, error: validation.error };
   }
 
-  const explanation = explainer(userInput, plan);
+  const explanation = explainer(userInput, uiPlan, previousPlan);
 
-  const version = saveVersion(code, explanation);
+  const saved = versionStore.saveVersion(code, explanation, uiPlan);
 
   return {
     success: true,
-    versionId: version.id,
+    versionId: saved.id,
     code,
     explanation
   };
