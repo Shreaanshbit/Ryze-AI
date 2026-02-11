@@ -1,40 +1,32 @@
-function generateImports() {
-  return `import { Button, Card, Input, Modal, Sidebar, Navbar, Table, Chart } from "./components";`;
-}
+const { generateText } = require("../llm/geminiClient");
 
-function generateComponentJSX(plan) {
-  const elements = plan.components.map((component) => {
-    const { type, props } = component;
+const ALLOWED_COMPONENTS = ["Button", "Card", "Input", "Modal", "Sidebar", "Navbar", "Table", "Chart"];
 
-    if (props && props.title) {
-      return `<${type} title="${props.title}" />`;
-    }
+async function generator(uiPlan) {
+  if (!uiPlan || !Array.isArray(uiPlan.components)) throw new Error("Invalid plan");
 
-    return `<${type} />`;
+  const systemInstruction =
+    `You are the GENERATOR.
+Output ONLY valid React code (no markdown, no explanation).
+
+Rules:
+- Import ONLY the components that appear in uiPlan.components.
+- Do NOT import unused components.
+- Import exactly from "./components".
+- You may use ONLY these components: ${ALLOWED_COMPONENTS.join(", ")}.
+- Define ONLY: export default function GeneratedUI() { ... }
+- No inline styles.
+- No className.
+- No HTML tags like div, section, main.
+- Render components in the order provided in uiPlan.`;
+
+  const userText = JSON.stringify({ uiPlan }, null, 2);
+
+  const code = await generateText({
+    systemInstruction,
+    userText,
+    temperature: 0.1
   });
-
-  return elements.join("\n      ");
-}
-
-function generator(plan) {
-  if (!plan || !plan.components) {
-    throw new Error("Invalid plan");
-  }
-
-  const imports = generateImports();
-  const jsx = generateComponentJSX(plan);
-
-  const code = `
-${imports}
-
-export default function GeneratedUI() {
-  return (
-    <>
-      ${jsx}
-    </>
-  );
-}
-  `.trim();
 
   return code;
 }

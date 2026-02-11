@@ -1,25 +1,20 @@
-function explainer(userInput, uiPlan, previousPlan = null) {
-  const newComponents = (uiPlan.components || []).map(c => c.type);
+const { generateText } = require("../llm/geminiClient");
 
-  let changeSummary = "Initial UI generation.";
+async function explainer(userInput, uiPlan, previousPlan = null) {
+  const systemInstruction =
+    `You are the EXPLAINER.
+Explain in plain English:
+- why the layout/components were chosen
+- what changed vs previousPlan (if present)
+Be concise and reference component names. No code.`;
 
-  if (previousPlan && previousPlan.components) {
-    const oldComponents = previousPlan.components.map(c => c.type);
-    const added = newComponents.filter(c => !oldComponents.includes(c));
-    const removed = oldComponents.filter(c => !newComponents.includes(c));
+  const userText = JSON.stringify({ userInput, uiPlan, previousPlan }, null, 2);
 
-    if (added.length || removed.length) {
-      changeSummary = `Changes applied: ${added.length ? `Added ${added.join(", ")}` : ""}${added.length && removed.length ? " | " : ""}${removed.length ? `Removed ${removed.join(", ")}` : ""}`;
-    } else {
-      changeSummary = "No structural component changes detected.";
-    }
-  }
-
-  return `User request: "${userInput}"
-Layout: ${uiPlan.layout}
-Components: ${newComponents.join(", ")}
-${changeSummary}
-Only predefined components were used to maintain deterministic rendering.`;
+  return await generateText({
+    systemInstruction,
+    userText,
+    temperature: 0.2
+  });
 }
 
 module.exports = explainer;
