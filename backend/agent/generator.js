@@ -18,7 +18,8 @@ Rules:
 - No inline styles.
 - No className.
 - No HTML tags like div, section, main.
-- Render components in the order provided in uiPlan.`;
+- Render components in the order provided in uiPlan.
+If uiPlan.__fix exists, correct the output according to the validation error while still following all rules.`;
 
   const userText = JSON.stringify({ uiPlan }, null, 2);
 

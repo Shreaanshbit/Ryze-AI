@@ -12,16 +12,22 @@ async function orchestrator(userInput) {
 
   const uiPlan = await planner(userInput, previousPlan);
 
-  const code = await generator(uiPlan);
+  let code = await generator(uiPlan);
 
-  const validation = validateCode(code);
-  if (!validation.valid) return { success: false, error: validation.error };
+  let validation = validateCode(code);
+  if (!validation.valid) {
+    const fixedPlan = { ...uiPlan, __fix: validation.error };
+    code = await generator(fixedPlan);
+
+    validation = validateCode(code);
+    if (!validation.valid) return { success: false, error: validation.error };
+  }
 
   const explanation = await explainer(userInput, uiPlan, previousPlan);
 
   const saved = versionStore.saveVersion(code, explanation, uiPlan);
 
-  return { success: true, versionId: saved.id, code, explanation ,uiPlan};
+  return { success: true, versionId: saved.id, code, explanation, uiPlan };
 }
 
 module.exports = orchestrator;
