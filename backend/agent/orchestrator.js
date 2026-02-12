@@ -21,7 +21,7 @@ async function orchestrator(userInput) {
 
   const saved = versionStore.saveVersion(code, explanation, uiPlan);
 
-  return { success: true, versionId: saved.id, code, explanation };
+  return { success: true, versionId: saved.id, code, explanation ,uiPlan};
 }
 
 module.exports = orchestrator;
