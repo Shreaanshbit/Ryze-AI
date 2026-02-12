@@ -1,6 +1,8 @@
+// src/App.jsx
 import { useEffect, useState } from "react";
 import PreviewRenderer from "./preview/PreviewRenderer";
 import { generateUI, getVersions, rollback } from "./api/client";
+import "./App.css";
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
@@ -52,68 +54,83 @@ export default function App() {
   }
 
   return (
-    <div style={{ height: "100vh", display: "grid", gridTemplateColumns: "340px 1fr 520px" }}>
-      <div style={{ borderRight: "1px solid #e5e7eb", padding: 14, display: "grid", gridTemplateRows: "auto auto 1fr" }}>
-        <div style={{ fontWeight: 900, fontSize: 18 }}>Ryze AI</div>
+    <div className="app-container">
+      {/* Left Panel - Prompt & Versions */}
+      <div className="left-panel">
+        <div className="app-title">Ryze AI UI Builder</div>
 
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontWeight: 800, marginBottom: 6 }}>Prompt</div>
+        <div className="prompt-section">
+          <label className="section-label">Prompt</label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe UI or request modifications..."
-            style={{ width: "100%", minHeight: 90, resize: "vertical", padding: 10, borderRadius: 10, border: "1px solid #d0d7de" }}
+            className="prompt-textarea"
           />
           <button
             onClick={onGenerate}
             disabled={loading}
-            style={{ marginTop: 10, width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #d0d7de", background: "#fff", fontWeight: 800, cursor: "pointer" }}
+            className={`generate-button ${loading ? "loading" : ""}`}
           >
-            {loading ? "Generating..." : "Generate / Modify"}
+            {loading ? (
+              <>
+                <span className="spinner" />
+                Generating...
+              </>
+            ) : (
+              "Generate / Modify"
+            )}
           </button>
         </div>
 
-        <div style={{ marginTop: 14, overflow: "auto" }}>
-          <div style={{ fontWeight: 800, marginBottom: 8 }}>Versions</div>
-          <div style={{ display: "grid", gap: 8 }}>
+        <div className="versions-section">
+          <div className="section-label">Versions</div>
+          <div className="versions-list">
             {versions.slice().reverse().map((v) => (
               <button
                 key={v.id}
                 onClick={() => onRollback(v.id)}
-                style={{ textAlign: "left", padding: 10, borderRadius: 10, border: "1px solid #e5e7eb", background: "#fff", cursor: "pointer" }}
+                className="version-card"
               >
-                <div style={{ fontWeight: 800 }}>Version {v.id}</div>
-                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
-                  {(v.explanation || "").slice(0, 60)}{(v.explanation || "").length > 60 ? "..." : ""}
+                <div className="version-id">Version {v.id}</div>
+                <div className="version-snippet">
+                  {(v.explanation || "").slice(0, 60)}
+                  {(v.explanation || "").length > 60 ? "..." : ""}
                 </div>
               </button>
             ))}
-            {!versions.length ? <div style={{ color: "#6b7280" }}>No versions yet</div> : null}
+            {!versions.length && (
+              <div className="empty-state">No versions yet</div>
+            )}
           </div>
         </div>
       </div>
 
-      <div style={{ padding: 14, overflow: "auto" }}>
-        <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 10 }}>Live Preview</div>
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14, background: "#f9fafb" }}>
-          <PreviewRenderer uiPlan={uiPlan} />
+      {/* Middle Panel - Preview & Explanation */}
+      <div className="middle-panel">
+        <div className="preview-container">
+          <h2 className="panel-title">Live Preview</h2>
+          <div className="preview-content">
+            <PreviewRenderer uiPlan={uiPlan} />
+          </div>
         </div>
 
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 10 }}>Explanation</div>
-          <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14, background: "#fff", whiteSpace: "pre-wrap" }}>
+        <div className="explanation-container">
+          <h2 className="panel-title">Explanation</h2>
+          <div className="explanation-content">
             {explanation || "No explanation yet."}
           </div>
         </div>
       </div>
 
-      <div style={{ borderLeft: "1px solid #e5e7eb", padding: 14, overflow: "auto" }}>
-        <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 10 }}>Generated Code</div>
+      {/* Right Panel - Code */}
+      <div className="right-panel">
+        <h2 className="panel-title">Generated Code</h2>
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Generated code will appear here..."
-          style={{ width: "100%", height: "calc(100vh - 60px)", resize: "none", padding: 12, borderRadius: 14, border: "1px solid #d0d7de", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontSize: 12 }}
+          className="code-textarea"
         />
       </div>
     </div>
