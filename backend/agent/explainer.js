@@ -1,3 +1,6 @@
+/**
+ * produces concise bullet point explanation for the UI changes. 
+ */
 const { generateText } = require("../llm/geminiClient");
 
 async function explainer(userInput, uiPlan, previousPlan = null) {

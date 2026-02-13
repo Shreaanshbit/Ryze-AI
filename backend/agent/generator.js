@@ -1,3 +1,7 @@
+/**
+ * convert structured UI Plan into a valid React code keeping using only the allowed components.
+ */
+
 const { generateText } = require("../llm/geminiClient");
 
 const ALLOWED_COMPONENTS = ["Button", "Card", "Input", "Modal", "Sidebar", "Navbar", "Table", "Chart"];

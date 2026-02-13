@@ -1,3 +1,8 @@
+/**
+ * convert natural language and previous UI plan into a deterministic UI Plan.
+ * Enforces compnent whitelist using a structured Schema . 
+ */
+
 const { generateJson } = require("../llm/geminiClient");
 
 const ALLOWED_COMPONENTS = ["Button", "Card", "Input", "Modal", "Sidebar", "Navbar", "Table", "Chart"];
