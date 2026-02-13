@@ -1,5 +1,6 @@
 /**
- * produces concise bullet point explanation for the UI changes. 
+ * produces concise bullet point explanation for the UI changes.
+ *  
  */
 const { generateText } = require("../llm/geminiClient");
 

@@ -1,6 +1,6 @@
 /**
  * convert natural language and previous UI plan into a deterministic UI Plan.
- * Enforces compnent whitelist using a structured Schema . 
+ * Enforces compnent whitelist using a structured Schema  
  */
 
 const { generateJson } = require("../llm/geminiClient");

@@ -1,5 +1,6 @@
 /**
  * Ensures that the generated code adheres to deterministic constraints 
+ * 
  */
 const ALLOWED_COMPONENTS = [
   "Button",
