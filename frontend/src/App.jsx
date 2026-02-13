@@ -115,9 +115,6 @@ export default function App() {
       <div className="top-bar">
         <div className="top-bar-left">
           <div className="logo-container">
-            <div className="logo-icon">
-              <span className="sparkle">✨</span>
-            </div>
             <h1 className="app-title">Ryze AI</h1>
           </div>
           <div className="tagline">UI Builder</div>
@@ -134,7 +131,6 @@ export default function App() {
         <div className="left-panel">
           <div className="panel-section">
             <div className="section-header">
-              <span className="section-icon">💬</span>
               <h2 className="section-title">Prompt</h2>
             </div>
             <textarea
@@ -157,7 +153,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
                 </>
               ) : (
                 <>
-                  <span className="button-icon">🚀</span>
                   Generate / Modify
                 </>
               )}
@@ -166,7 +161,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
 
           <div className="panel-section versions-section">
             <div className="section-header">
-              <span className="section-icon">📚</span>
               <h2 className="section-title">Versions</h2>
               <span className="version-count">{versions.length}</span>
             </div>
@@ -200,7 +194,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
         <div className="middle-panel">
           <div className="preview-container">
             <div className="section-header">
-              <span className="section-icon">👁️</span>
               <h2 className="section-title">Live Preview</h2>
 
               <div className="preview-mode-toggle" style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
@@ -246,7 +239,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
 
           <div className="explanation-container">
             <div className="section-header">
-              <span className="section-icon">💡</span>
               <h2 className="section-title">Explanation</h2>
             </div>
             <div className="explanation-content">
@@ -264,7 +256,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
         <div className="right-panel">
           <div className="section-header code-header">
             <div className="header-left">
-              <span className="section-icon">⚡</span>
               <h2 className="section-title">Generated Code</h2>
             </div>
             <button onClick={copyCode} className={`copy-button ${copied ? "copied" : ""}`}>
@@ -275,7 +266,6 @@ e.g., 'Create a modern dashboard with charts and cards'"
                 </>
               ) : (
                 <>
-                  <span>📋</span>
                   Copy
                 </>
               )}
