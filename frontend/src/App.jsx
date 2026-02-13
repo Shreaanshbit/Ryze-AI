@@ -120,10 +120,6 @@ export default function App() {
           <div className="tagline">UI Builder</div>
         </div>
         <div className="top-bar-right">
-          <div className="status-badge">
-            <span className="status-dot"></span>
-            Connected
-          </div>
         </div>
       </div>
 
