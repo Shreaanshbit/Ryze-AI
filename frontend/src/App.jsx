@@ -1,7 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PreviewRenderer from "./preview/PreviewRenderer";
 import { generateUI, getVersions, rollback } from "./api/client";
 import "./App.css";
+
+function parseCodeToUiPlan(code) {
+  const allowed = ["Button", "Card", "Input", "Modal", "Sidebar", "Navbar", "Table", "Chart"];
+  const tagRegex = /<\s*(Button|Card|Input|Modal|Sidebar|Navbar|Table|Chart)\b([^\/>]*)\/\s*>/g;
+
+  const getProp = (attrs, key) => {
+    const r = new RegExp(`${key}\\s*=\\s*"([^"]*)"`, "i");
+    const m = attrs.match(r);
+    return m ? m[1] : undefined;
+  };
+
+  const components = [];
+  let match;
+
+  while ((match = tagRegex.exec(code || "")) !== null) {
+    const type = match[1];
+    const attrs = match[2] || "";
+    if (!allowed.includes(type)) continue;
+
+    const props = {};
+    const title = getProp(attrs, "title");
+    const label = getProp(attrs, "label");
+    const placeholder = getProp(attrs, "placeholder");
+
+    if (title !== undefined) props.title = title;
+    if (label !== undefined) props.label = label;
+    if (placeholder !== undefined) props.placeholder = placeholder;
+
+    components.push(Object.keys(props).length ? { type, props } : { type });
+  }
+
+  return { layout: "single-column", components };
+}
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
@@ -14,6 +47,9 @@ export default function App() {
   const [versions, setVersions] = useState([]);
   const [copied, setCopied] = useState(false);
 
+  const [previewMode, setPreviewMode] = useState("plan"); // "plan" | "code"
+  const [codeParseError, setCodeParseError] = useState("");
+
   async function refreshVersions() {
     const data = await getVersions();
     if (data?.success) setVersions(data.versions || []);
@@ -22,6 +58,21 @@ export default function App() {
   useEffect(() => {
     refreshVersions();
   }, []);
+
+  const codeUiPlan = useMemo(() => {
+    if (previewMode !== "code") return null;
+    try {
+      const p = parseCodeToUiPlan(code || "");
+      const has = Array.isArray(p.components) && p.components.length > 0;
+      setCodeParseError(has ? "" : "No valid components found. Use self-closing tags like <Card title=\"...\" />");
+      return p;
+    } catch {
+      setCodeParseError("Could not parse the code into a preview.");
+      return { layout: "single-column", components: [] };
+    }
+  }, [code, previewMode]);
+
+  const activeUiPlan = previewMode === "code" ? codeUiPlan : uiPlan;
 
   async function onGenerate() {
     const text = prompt.trim();
@@ -61,7 +112,6 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Top Bar */}
       <div className="top-bar">
         <div className="top-bar-left">
           <div className="logo-container">
@@ -80,9 +130,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="main-content">
-        {/* Left Panel - Prompt & Versions */}
         <div className="left-panel">
           <div className="panel-section">
             <div className="section-header">
@@ -95,11 +143,12 @@ export default function App() {
               placeholder="Describe your UI design... 
 e.g., 'Create a modern dashboard with charts and cards'"
               className="prompt-textarea"
+              disabled={loading}
             />
             <button
               onClick={onGenerate}
               disabled={loading}
-              className={`generate-button ${loading ? 'loading' : ''}`}
+              className={`generate-button ${loading ? "loading" : ""}`}
             >
               {loading ? (
                 <>
@@ -122,22 +171,21 @@ e.g., 'Create a modern dashboard with charts and cards'"
               <span className="version-count">{versions.length}</span>
             </div>
             <div className="versions-list">
-              {versions.slice().reverse().map((v, idx) => (
-                <button
-                  key={v.id}
-                  onClick={() => onRollback(v.id)}
-                  className="version-card"
-                >
-                  <div className="version-header">
-                    <span className="version-badge">v{v.id}</span>
-                    {idx === 0 && <span className="latest-badge">Latest</span>}
-                  </div>
-                  <div className="version-description">
-                    {(v.explanation || "").slice(0, 60)}
-                    {(v.explanation || "").length > 60 ? "..." : ""}
-                  </div>
-                </button>
-              ))}
+              {versions
+                .slice()
+                .reverse()
+                .map((v, idx) => (
+                  <button key={v.id} onClick={() => onRollback(v.id)} className="version-card">
+                    <div className="version-header">
+                      <span className="version-badge">v{v.id}</span>
+                      {idx === 0 && <span className="latest-badge">Latest</span>}
+                    </div>
+                    <div className="version-description">
+                      {(v.explanation || "").slice(0, 60)}
+                      {(v.explanation || "").length > 60 ? "..." : ""}
+                    </div>
+                  </button>
+                ))}
               {!versions.length && (
                 <div className="empty-state">
                   <span className="empty-icon">📭</span>
@@ -149,16 +197,39 @@ e.g., 'Create a modern dashboard with charts and cards'"
           </div>
         </div>
 
-        {/* Middle Panel - Preview & Explanation */}
         <div className="middle-panel">
           <div className="preview-container">
             <div className="section-header">
               <span className="section-icon">👁️</span>
               <h2 className="section-title">Live Preview</h2>
+
+              <div className="preview-mode-toggle" style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("plan")}
+                  className={`copy-button ${previewMode === "plan" ? "copied" : ""}`}
+                  style={{ padding: "6px 10px" }}
+                >
+                  Plan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("code")}
+                  className={`copy-button ${previewMode === "code" ? "copied" : ""}`}
+                  style={{ padding: "6px 10px" }}
+                >
+                  Code
+                </button>
+              </div>
             </div>
+
             <div className="preview-viewport">
-              {uiPlan ? (
-                <PreviewRenderer uiPlan={uiPlan} />
+              {previewMode === "code" && codeParseError ? (
+                <div style={{ color: "#b91c1c", fontWeight: 600, marginBottom: 10 }}>{codeParseError}</div>
+              ) : null}
+
+              {activeUiPlan ? (
+                <PreviewRenderer uiPlan={activeUiPlan} />
               ) : (
                 <div className="empty-state">
                   <div className="empty-preview-graphic">
@@ -190,17 +261,13 @@ e.g., 'Create a modern dashboard with charts and cards'"
           </div>
         </div>
 
-        {/* Right Panel - Code */}
         <div className="right-panel">
           <div className="section-header code-header">
             <div className="header-left">
               <span className="section-icon">⚡</span>
               <h2 className="section-title">Generated Code</h2>
             </div>
-            <button 
-              onClick={copyCode}
-              className={`copy-button ${copied ? 'copied' : ''}`}
-            >
+            <button onClick={copyCode} className={`copy-button ${copied ? "copied" : ""}`}>
               {copied ? (
                 <>
                   <span>✓</span>
